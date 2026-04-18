@@ -389,6 +389,18 @@ Nic. Wszystko w tym pliku = decyzja finalna. Jeśli chcesz zmienić — edytuj p
 
 ## Session log / Progress
 
+### 2026-04-18 — PAUZA (koniec sesji 2)
+
+**Stan repo**: commit `5c6e208` na origin/main, wszystko wypchnięte.
+**Stan kodu**: kompiluje się (UE 5.7.4 + VS 2026), ostatnia zmiana — refactor z feedback usera (multi-peek queue, dirty tables, cash pickup, clean map, 3 stoliki, error recovery).
+**Stan testów**: pierwszy test usera przeszedł podstawową pętlę (sesja 2). Drugi test nie zrobiony jeszcze — user wraca żeby odpalić i przetestować refactor.
+
+**Gdy user wraca**: przeczytaj sekcję "2026-04-18 — sesja 2" + TODO w "sesja 1 → Otwarte TODO po playable" + pytania na dole sesji 2. Nie duplikuj poprzedniej pracy, kontynuuj od pytań/testów.
+
+**Oczekiwania po wznowieniu**: user odpali editor, przetestuje refactor, przyjdzie z wrażeniami (co działa, co buguje, co zmienić). Odpowiedz na pytania, napraw co nie działa, iteruj.
+
+---
+
 ### 2026-04-18 — sesja 2: feedback z pierwszego testu
 
 **Zrobione (commit `f4c2931`)**:
