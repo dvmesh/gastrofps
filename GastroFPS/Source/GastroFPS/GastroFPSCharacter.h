@@ -1,6 +1,6 @@
 // Bazowy first-person character dla GastroFPS.
-// Do movementu/lookingu używa Enhanced Input (istniejące IA_Move/IA_Look/IA_Jump z templatu).
-// Interakcja (E) używa legacy key binding żeby nie wymagać kolejnego uasset.
+// Używa Enhanced Input dla move/look/jump i legacy key binding dla E (interact).
+// Peek zamówień: gracz pamięta DOWOLNĄ ilość zamówień (jak kelner z blokiem) — brak TTL.
 
 #pragma once
 
@@ -49,28 +49,23 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	// =================== Interakcja ===================
-	// Zasięg trace'u dla interakcji
 	UPROPERTY(EditAnywhere, Category = "GastroFPS|Interact")
 	float InteractTraceCm = 250.f;
-
-	// Czas życia bubble'a zamówienia po peekowaniu
-	UPROPERTY(EditAnywhere, Category = "GastroFPS|Order")
-	float PeekedOrderTTLSec = 5.f;
 
 	UFUNCTION(BlueprintCallable, Category = "GastroFPS|Interact")
 	AStation* GetCurrentInteractTarget() const { return CurrentInteractTarget; }
 
-	// =================== Peek (zapamiętane zamówienie) ===================
-	bool HasPeekedOrder() const { return bHasPeekedOrder && PeekedOrderRemainingSec > 0.f; }
-	void PeekOrderFrom(ACustomer* Customer);
-	FOrderData ConsumePeekedOrder();
+	// =================== Peek queue (kelner z pamięcią) ===================
+	bool HasPeekedOrders() const { return PeekedOrders.Num() > 0; }
+	int32 NumPeekedOrders() const { return PeekedOrders.Num(); }
 
-	UFUNCTION(BlueprintPure, Category = "GastroFPS|Order")
-	float GetPeekedOrderRemainingSec() const { return PeekedOrderRemainingSec; }
+	// Dodaje zamówienie do queue jeżeli jeszcze tam nie ma (po OrderId/CustomerRef)
+	void AddPeekedOrder(const FOrderData& Order);
 
-	UFUNCTION(BlueprintPure, Category = "GastroFPS|Order")
-	const FOrderData& GetPeekedOrderForHUD() const { return PeekedOrder; }
+	// Pobiera najstarsze (FIFO) zamówienie z queue — używa POS
+	FOrderData ConsumeOldestPeekedOrder();
+
+	const TArray<FOrderData>& GetPeekedOrdersForHUD() const { return PeekedOrders; }
 
 	// =================== Carrying pizza ===================
 	bool IsCarryingPizza() const { return bCarryingPizza; }
@@ -81,8 +76,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "GastroFPS|Order")
 	const FOrderData& GetCarriedOrderForHUD() const { return CarriedOrder; }
 
+	// =================== Cash pickup ===================
+	void PocketCash(int32 Amount);
+
 protected:
-	// Enhanced Input callbacks (unchanged)
 	void MoveInput(const FInputActionValue& Value);
 	void LookInput(const FInputActionValue& Value);
 
@@ -98,7 +95,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
-	// Interact (legacy key binding na E)
 	void OnInteractPressed();
 
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -108,21 +104,16 @@ public:
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 private:
-	// Aktualnie namierzona stacja (cached co tick dla HUD)
 	UPROPERTY()
 	AStation* CurrentInteractTarget = nullptr;
 
-	// Peek state
+	// Queue peeków — bez limitu czasu (gracz pamięta sam jak kelner z blokiem)
 	UPROPERTY()
-	FOrderData PeekedOrder;
-	bool bHasPeekedOrder = false;
-	float PeekedOrderRemainingSec = 0.f;
+	TArray<FOrderData> PeekedOrders;
 
-	// Carry state
 	UPROPERTY()
 	FOrderData CarriedOrder;
 	bool bCarryingPizza = false;
 
-	// Helpers
 	AStation* TraceForStation() const;
 };

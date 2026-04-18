@@ -1,4 +1,8 @@
-// Proceduralnie stawia whitebox pizzerii w StartPlay, spawnuje klientów co X sekund.
+// Proceduralnie stawia whitebox pizzerii w StartPlay:
+// - destroy wszystkie AStaticMeshActor z Lvl_FirstPerson (czyści shooter targety, ściany, floor templatu)
+// - spawn własnej podłogi i stacji na wyliczonym poziomie (trace down z PlayerStart)
+// - spawnuje 3 stoliki (T1-T3), 1 POS, 1 Pass
+// - loop spawn customerów do wolnych stolików co X sekund
 
 #pragma once
 
@@ -28,7 +32,13 @@ public:
 	float MatchDurationSec = 15 * 60.f;
 
 	UPROPERTY(EditAnywhere, Category = "GastroFPS|Match")
-	float CustomerSpawnIntervalSec = 20.f;
+	float CustomerSpawnIntervalSec = 15.f;
+
+	UPROPERTY(EditAnywhere, Category = "GastroFPS|Match")
+	int32 NumTables = 3;
+
+	UPROPERTY(EditAnywhere, Category = "GastroFPS|Match")
+	bool bCleanLevelAtStart = true;
 
 	UPROPERTY()
 	UStaticMesh* CubeMesh = nullptr;
@@ -45,10 +55,15 @@ public:
 	UPROPERTY()
 	UMaterialInterface* YellowMaterial = nullptr;
 
+	UPROPERTY()
+	UMaterialInterface* GrayMaterial = nullptr;
+
 private:
-	void SpawnWorld(const FVector& Origin);
+	void CleanLevel();
+	void SpawnWorld(const FVector& Origin, float FloorZ);
 	void TrySpawnCustomer();
 	ATableStation* FindFreeTable() const;
+	float FindFloorZ(const FVector& Origin) const;
 
 	TArray<TWeakObjectPtr<ATableStation>> Tables;
 	FVector CustomerSpawnPoint = FVector::ZeroVector;

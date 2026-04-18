@@ -55,6 +55,9 @@ public:
 	void OnOrderSubmitted();
 	void OnFoodDelivered(bool bCorrectOrder);
 
+	// Wypłata (base + tip) — wywoływana przy MarkPaidAndLeft na stoliku
+	int32 ComputePayoutAmount() const;
+
 	// Składowe
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* BodyMesh;
@@ -68,5 +71,4 @@ private:
 
 	void SetState(ECustomerState NewState);
 	void UpdateWalking(float DeltaSeconds);
-	void AwardPayout(bool bCorrect);
 };

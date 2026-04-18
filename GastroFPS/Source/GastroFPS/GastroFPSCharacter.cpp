@@ -11,8 +11,8 @@
 #include "GastroFPS.h"
 #include "Stations/Station.h"
 #include "Customers/Customer.h"
+#include "Core/GastroFPSGameState.h"
 #include "Engine/World.h"
-#include "DrawDebugHelpers.h"
 
 AGastroFPSCharacter::AGastroFPSCharacter()
 {
@@ -47,22 +47,6 @@ AGastroFPSCharacter::AGastroFPSCharacter()
 void AGastroFPSCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	// Update peek TTL
-	if (bHasPeekedOrder)
-	{
-		PeekedOrderRemainingSec -= DeltaSeconds;
-		if (PeekedOrderRemainingSec <= 0.f)
-		{
-			bHasPeekedOrder = false;
-			PeekedOrderRemainingSec = 0.f;
-			// Order zostaje w pamięci ale bez bubbla — gracz musi wrócić do stolika
-			// (MVP: na razie całkowicie wymazujemy peek — gracz musi wrócić)
-			PeekedOrder = FOrderData();
-		}
-	}
-
-	// Cache current interact target dla HUD
 	CurrentInteractTarget = TraceForStation();
 }
 
@@ -81,7 +65,6 @@ void AGastroFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		UE_LOG(LogGastroFPS, Error, TEXT("'%s' Failed to find an Enhanced Input Component!"), *GetNameSafe(this));
 	}
 
-	// Legacy key binding dla Interact (E) — nie wymaga stworzenia IA_Interact.uasset
 	PlayerInputComponent->BindKey(EKeys::E, IE_Pressed, this, &AGastroFPSCharacter::OnInteractPressed);
 }
 
@@ -144,21 +127,24 @@ AStation* AGastroFPSCharacter::TraceForStation() const
 	return Cast<AStation>(HitActor);
 }
 
-void AGastroFPSCharacter::PeekOrderFrom(ACustomer* Customer)
+void AGastroFPSCharacter::AddPeekedOrder(const FOrderData& Order)
 {
-	if (!Customer) return;
-	PeekedOrder = Customer->CurrentOrder;
-	PeekedOrder.CustomerRef = Customer;
-	bHasPeekedOrder = true;
-	PeekedOrderRemainingSec = PeekedOrderTTLSec;
+	// Dedupe: jeżeli to zamówienie już w queue (po OrderId), nie dodawaj
+	for (const FOrderData& Existing : PeekedOrders)
+	{
+		if (Existing.OrderId == Order.OrderId && Order.OrderId != -1)
+		{
+			return;
+		}
+	}
+	PeekedOrders.Add(Order);
 }
 
-FOrderData AGastroFPSCharacter::ConsumePeekedOrder()
+FOrderData AGastroFPSCharacter::ConsumeOldestPeekedOrder()
 {
-	FOrderData Out = PeekedOrder;
-	bHasPeekedOrder = false;
-	PeekedOrderRemainingSec = 0.f;
-	PeekedOrder = FOrderData();
+	if (PeekedOrders.Num() == 0) return FOrderData();
+	FOrderData Out = PeekedOrders[0];
+	PeekedOrders.RemoveAt(0);
 	return Out;
 }
 
@@ -177,12 +163,16 @@ void AGastroFPSCharacter::ClearCarriedPizza()
 bool AGastroFPSCharacter::DoesCarriedOrderMatch(const FOrderData& CustomerOrder) const
 {
 	if (!bCarryingPizza) return false;
-	// MVP: po prostu porównanie OrderId (Pass trzyma kopię z POS, która miała CustomerRef z peeku)
 	if (CarriedOrder.OrderId != -1 && CarriedOrder.OrderId == CustomerOrder.OrderId) return true;
-	// Fallback: porównanie po referencji klienta
 	if (CarriedOrder.CustomerRef.IsValid() && CarriedOrder.CustomerRef == CustomerOrder.CustomerRef)
 	{
 		return true;
 	}
 	return false;
+}
+
+void AGastroFPSCharacter::PocketCash(int32 Amount)
+{
+	AGastroFPSGameState* GS = GetWorld()->GetGameState<AGastroFPSGameState>();
+	if (GS) GS->AddMoney(Amount);
 }

@@ -57,6 +57,16 @@ enum class ECustomerState : uint8
 	WalkedOut
 };
 
+// Stan stolika — Dirty_* po wyjściu klienta, gracz musi zebrać kasę i posprzątać.
+UENUM(BlueprintType)
+enum class ETableState : uint8
+{
+	Free,              // czysty, może siadać klient
+	Occupied,          // klient siedzi
+	Dirty_WithCash,    // klient wyszedł, zostawił kasę na stole
+	Dirty_NoCash       // kasa zebrana, ale stolik nadal brudny — E żeby posprzątać
+};
+
 USTRUCT(BlueprintType)
 struct FOrderItem
 {
@@ -78,7 +88,11 @@ struct FOrderData
 	UPROPERTY(BlueprintReadOnly)
 	int32 OrderId = -1;
 
-	// Referencja do stolika/klienta
+	// Numer stolika — gracz musi pamiętać żeby wbić do POS i dostarczyć
+	UPROPERTY(BlueprintReadOnly)
+	int32 TableNumber = 0;
+
+	// Referencja do klienta (ten sam wskaźnik służy do matchowania przy dostawie)
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<AActor> CustomerRef;
 

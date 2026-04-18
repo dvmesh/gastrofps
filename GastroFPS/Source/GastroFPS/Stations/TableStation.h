@@ -1,7 +1,5 @@
-// Stolik. Ma slot na jednego klienta. Interakcja zależy od stanu:
-// - pusty: nic się nie dzieje
-// - klient siedzi (NotTaken): "take order" → peek, serwer zapamiętuje
-// - klient siedzi (waiting for food) + gracz niesie pizzę: "deliver order"
+// Stolik. Stany: Free / Occupied / Dirty_WithCash / Dirty_NoCash.
+// Gracz pamiętą numer stolika i co klient zamówił — peek nie ma timera, kelner jak IRL.
 
 #pragma once
 
@@ -11,6 +9,7 @@
 #include "TableStation.generated.h"
 
 class ACustomer;
+class UStaticMeshComponent;
 
 UCLASS()
 class GASTROFPS_API ATableStation : public AStation
@@ -24,11 +23,39 @@ public:
 	virtual void Interact_Implementation(APawn* Interactor) override;
 	virtual FText GetPromptText_Implementation(APawn* Interactor) const override;
 
-	// Slot na klienta — 1 na stolik w MVP
+	// Numer stolika nadawany przez GameMode (1, 2, 3...)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GastroFPS|Table")
+	int32 TableNumber = 1;
+
+	// Klient siedzący (null jeśli Free/Dirty)
 	UPROPERTY()
 	TWeakObjectPtr<ACustomer> Occupant;
 
-	// Punkt w świecie gdzie klient ma usiąść (offset od stolika)
+	// Stan stolika
+	UPROPERTY(BlueprintReadOnly, Category = "GastroFPS|Table")
+	ETableState State = ETableState::Free;
+
+	// Kasa do pobrania (tylko w Dirty_WithCash)
+	UPROPERTY(BlueprintReadOnly, Category = "GastroFPS|Table")
+	int32 CashAmount = 0;
+
+	// Punkt gdzie klient ma usiąść (offset od stolika)
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USceneComponent* SeatPoint;
+
+	// Wizualne markery
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UStaticMeshComponent* CashVisual;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UStaticMeshComponent* DirtyVisual;
+
+	// API używane przez Customer
+	void MarkPaidAndLeft(int32 Amount);
+
+	// API używane przez player (zbiera kasę)
+	int32 CollectCash();
+
+	// API player — kliknięcie E żeby posprzątać (tylko Dirty_NoCash)
+	void CleanUp();
 };
