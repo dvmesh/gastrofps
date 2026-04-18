@@ -389,6 +389,26 @@ Nic. Wszystko w tym pliku = decyzja finalna. Jeśli chcesz zmienić — edytuj p
 
 ## Session log / Progress
 
+### 2026-04-18 — sesja 2: feedback z pierwszego testu
+
+**Zrobione (commit `f4c2931`)**:
+- Raport z testu usera: bloki w powietrzu (Z floor bug), pełna pętla działa, ale 5s timer za ostry, brak dirty/cash mechanic
+- **Peek queue bez TTL** — TArray<FOrderData> w Character, gracz pamięta nieograniczoną liczbę zamówień
+- **Numer stolika** w FOrderData, widoczny w HUD (list + carried order)
+- **Dirty tables + cash pickup** — ETableState machine, fizyczna kasa na stole do zebrania
+- **Error recovery** — zła dostawa nie wywala klienta, gracz może re-cook
+- **Clean map** — CleanLevel() niszczy AStaticMeshActor, spawn własnej podłogi 40×40m
+- **3 stoliki** zamiast 1 (T1-T3, losowy wybór przy spawn)
+- Fix Z: trace down z PlayerStart → FloorZ, stacje spawnują się na podłodze
+
+**Następne pytania/decyzje do usera po teście 2**:
+- Czy 3 stoliki jest OK, czy chcesz więcej (design doc 8)?
+- Czy customer walking animacja (lewo-prawo gait) przydałaby się, czy capsule-slide OK na teraz?
+- Czy chcesz że player widzi stolik number z daleka (world-space label nad stolikiem), czy tylko w prompt?
+- Ile ma kosztować "sprzątanie" — 1 E czy QTE rytmiczne jak w design doc?
+
+
+
 > **Format**: najnowsza sesja na górze. Każda sesja = data + co zrobione + pomysły + TODO + next step.
 > **Zasada**: sekcje design powyżej to source of truth (nie ruszać). Tu tylko log postępów.
 
