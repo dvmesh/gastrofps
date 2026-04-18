@@ -20,6 +20,21 @@ AGastroFPSGameMode::AGastroFPSGameMode()
 	GameStateClass = AGastroFPSGameState::StaticClass();
 	HUDClass = AGastroHUD::StaticClass();
 
+	// Wykorzystujemy BP z templatu — dostarczają mesh/anim/IMC setup
+	static ConstructorHelpers::FClassFinder<APawn> PawnBPFinder(
+		TEXT("/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter"));
+	if (PawnBPFinder.Succeeded())
+	{
+		DefaultPawnClass = PawnBPFinder.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<APlayerController> PCBPFinder(
+		TEXT("/Game/FirstPerson/Blueprints/BP_FirstPersonPlayerController"));
+	if (PCBPFinder.Succeeded())
+	{
+		PlayerControllerClass = PCBPFinder.Class;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeFinder(
 		TEXT("/Game/LevelPrototyping/Meshes/SM_Cube"));
 	if (CubeFinder.Succeeded())
