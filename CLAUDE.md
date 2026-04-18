@@ -407,24 +407,62 @@ Nic. Wszystko w tym pliku = decyzja finalna. Jeśli chcesz zmienić — edytuj p
 - Design .md przeniesione z Documents do Projects (wspólny root z Unreal project)
 - `.gitignore` + `.gitattributes` (Git LFS dla uasset/umap/images/audio/3D/fonts) utworzone
 - Git global config: `Antoni Bulsiewicz <antonibulsiewicz@gmail.com>` ustawione
-- **First commit `2bc9bec`**: 601 plików, 6905 insertions, root-commit `[M1] chore: initial scaffolding`
-- **Push `origin/main`** ✅ — 539 LFS objects (155 MB) uploaded. Repo live: https://github.com/dvmesh/gastrofps
+- **Commit `2bc9bec`** — root scaffolding (601 plików, 155 MB LFS uploaded)
+- **Commit `4e76678`** — strip shooter template (Variant_Horror/Shooter, pistol/rifle/grenade content)
+- **Commit `2bc9bec..4a16a13` (2x commit)** — M1 gameplay scaffold:
+  - `Core/GastroTypes.h` — enumy (EPizzaType, EOrderState, ECustomerState) + FOrderData
+  - `Core/GastroFPSGameState` — money, timer, stats
+  - `Stations/Station` base + `TableStation` + `POSStation` + `PassStation` (interact trace + prompt)
+  - `Customers/Customer` — pawn z prostym state machine (walk→sit→wait→eat→leave) bez navmesh
+  - `UI/GastroHUD` — Canvas HUD (top bar, crosshair, interact prompt, peek bubble 5s TTL, carried order, end screen)
+  - `GastroFPSCharacter` — extended: interact E (legacy key binding), peek (FOrderData + TTL), carry pizza
+  - `GastroFPSGameMode` — procedural spawn świata w StartPlay, customer spawn loop, FClassFinder dla BP_FirstPersonCharacter/PlayerController, HUDClass=AGastroHUD
+  - `DefaultEngine.ini` — GlobalDefaultGameMode → /Script/GastroFPS.GastroFPSGameMode (C++ jest source of truth, BP_FirstPersonGameMode orphaned)
+- **Build**: clean compile (UE 5.7.4 + VS 2026 14.50 toolchain, warning "non-preferred" ignorable)
+- **Push**: wszystko na `origin/main`, repo live https://github.com/dvmesh/gastrofps
 
 **Pomysły (w trakcie rozmowy)**:
-- First Person template przyniósł sporo niepotrzebnych assetów (Variant_Horror, Variant_Shooter, pistol anims, mannequins). GastroFPS nie ma strzelania → do wywalenia w osobnym commit na początku M1 (czysta baza).
+- Customer używa APawn + raw AddActorWorldOffset (nie CharacterMovement/navmesh). W M2 podmiana na AIController+NavMesh gdy się pojawi 2+ stolików i trzeba unikać ludzi/ścian.
+- Pomysł na M2 prep: wrzucić OrderComponent na klienta zamiast inlined CurrentOrder — czyściej gdy order staje się obiektem replikowanym w multiplayer.
+- Ryzyko: MVP NIE używa replication (design doc wymaga "multi-player first"). Spłaciłem ten dług intentionally dla prędkości M1 single-player. M2 zacznie się od refactor na Replicated UPROPERTY, GetLifetimeReplicatedProps, RPC serwerowe dla Interact().
 
-**Otwarte TODO**:
-- [ ] **M1 start**: usunąć Variant_Horror + Variant_Shooter + pistol/weapon content z templatu (osobny commit `[M1] chore: strip shooter template content`)
-- [ ] Utworzyć branch `dev` (per design doc: main=stable, dev=integration, feat/xxx=features)
-- [ ] M1 scaffolding: pierwsza klasa C++ `ASStation` (base interactable station), `UOrderComponent`, `EOrderState` enum
-- [ ] Pierwsza mapa `L_PizzeriaWhitebox` — capsule floor + walls, 1 stolik (cube), 1 POS (cube), 1 pass window (cube)
-- [ ] Ingest przycisk `E` jako placeholder interaction (custom input action)
-- [ ] Pierwszy test: gracz (First Person character) chodzi po mapie, interakcja E z cube-stoliki
-- [ ] Rozważyć zmianę email na GitHub noreply (opcjonalnie, email jest public w commitach)
-- [ ] Na końcu sesji: commit + push
+**Otwarte TODO przed "playable"**:
+- [ ] **User: test w edytorze** — otworzyć uproject, odrzucić rebuild prompt (już skompilowane), Play-in-Editor, przejść pełną pętlę (patrz instrukcja w "Next step")
+- [ ] Jeśli HUD się nie pokazuje — sprawdzić Output Log, prawdopodobnie problem z HUDClass override; fallback: ustawić HUDClass w BP_FirstPersonGameMode ręcznie
+- [ ] Jeśli Customer nie spawnuje — sprawdzić log StartPlay, PlayerStart może nie być znalezione
+- [ ] Jeśli E nie działa — legacy binding może konfliktować z Enhanced Input IMC; fallback: stworzyć IA_Interact.uasset i dodać binding przez Enhanced Input
+
+**TODO po playable (M1 polish)**:
+- [ ] Stworzyć własną mapę `L_PizzeriaWhitebox` (zastąpić Lvl_FirstPerson z shooter targetami z templatu) — wymaga ręcznej pracy w edytorze
+- [ ] Usunąć BP_FirstPersonGameMode (już nieużywany)
+- [ ] Dodać 2-3 stoliki + 2 POS (zgodnie z design doc mapą 8 stolików)
+- [ ] Przejście z raw AddActorWorldOffset → AI Nav dla klienta
+- [ ] Dodać visible pizza actor w ręku gracza (na razie tylko bool+data)
+
+**TODO M2 (multiplayer)**:
+- [ ] Wrzucić replication na kluczowe state (GameState money, Customer state, Station state)
+- [ ] Refactor Interact() na Server RPC
+- [ ] Listen server mode test 2 graczy
 
 **Blokery**: —
 
-**Next step**:
-Setup zamknięty. **M1 start** — pierwszy commit M1 to cleanup templatu (usunięcie Variant_*, pistol, mannequin anims — zostawiamy tylko First Person base character i minimalną mapę). Potem tworzymy branch `dev`, pierwsze klasy C++ (`ASStation`, `UOrderComponent`) i whitebox mapę.
+**Next step — INSTRUKCJA TESTU PLAYABLE MVP**:
+1. Otwórz `C:/Users/bulsi/Projects/gastrofps/GastroFPS/GastroFPS.uproject`
+2. Jeśli UE prosi o rebuild → Yes (powinien zauważyć że już skompilowane z cmdline, ale pewność nie zaszkodzi)
+3. Editor ładuje się ~30s → otworzy się Lvl_FirstPerson
+4. Press **Play** (Alt+P albo przycisk w topbarze)
+5. Powinieneś zobaczyć:
+   - **Top HUD**: `$0   15:00   OK:0  FAIL:0`
+   - **Centrum**: kropka (crosshair)
+   - **Stations** w zasięgu: żółty stolik, niebieski POS, zielony pass
+6. Po ~2s spawnuje się **czerwony klient** (cube+głowa) idzie do stolika
+7. Gdy klient siedzi, podejdź do stolika, celuj kamerą → HUD pokaże **"[E] Weź zamówienie"**
+8. Naciśnij **E** → pojawi się **peek bubble** z nazwą pizzy i timer 5s
+9. W ciągu 5s biegnij do POS, celuj → **"[E] Wbij zamówienie"**, naciśnij E
+10. 3s cook timer, potem idź do Pass → **"[E] Odbierz pizzę"**, E
+11. Wróć do stolika → **"[E] Podaj pizzę"**, E
+12. Klient je 4s, płaci, wychodzi. **$15 + tip** (do 30% za szybkie obsłużenie)
+13. Co 20s nowy klient, spawn nie-infinitely (tylko gdy stolik wolny)
+
+Zapisz wrażenia, screenshot bugów, cokolwiek nie działa — wrócę i poprawię.
 
