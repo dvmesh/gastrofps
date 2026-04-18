@@ -395,38 +395,36 @@ Nic. Wszystko w tym pliku = decyzja finalna. Jeśli chcesz zmienić — edytuj p
 ### 2026-04-18 — sesja setup
 
 **Zrobione**:
-- User poprosił o przeczytanie wszystkich plików w `gastrofps/` → przeczytałem BRIEFING, CLAUDE, README, SETUP_WINDOWS
-- Ustalono że Claude będzie utrzymywał tę sekcję "Session log" w CLAUDE.md między sesjami
-- Zapisano do memory: profil projektu + konwencja session log
-- **Start instalacji UE 5.7.4** (user wybrał nowszy niż design doc mówił 5.6)
-- **Design doc updated**: UE 5.6 → 5.7.4 we wszystkich 3 plikach (CLAUDE, README, SETUP_WINDOWS)
-- User potwierdził: Git zainstalowany, VS 2022 zainstalowany (czysty, bez workloadów)
-- Przekazano user listę workloadów/componentów do dobrania w VS Installer → Modify
-- **GitHub username**: `dvmesh` — zapisany do design doc (sekcja Team)
+- Przeczytano wszystkie pliki projektu (BRIEFING, CLAUDE, README, SETUP_WINDOWS)
+- Ustanowiono konwencję "Session log" w CLAUDE.md
+- Zapisano memory: profil projektu + konwencja session log + język PL
+- **Design doc updated**: UE 5.6 → 5.7.4 we wszystkich plikach
+- Instalacja UE 5.7.4 ✅
+- VS 2022 zainstalowany z workloadami (Game dev C++ etc.) ✅
+- Git + Git LFS gotowe ✅
+- GitHub account + repo `dvmesh/gastrofps` utworzone ✅
+- **Projekt Unreal utworzony**: `C:/Users/bulsi/Projects/gastrofps/GastroFPS/` (First Person C++ template, UE 5.7.4)
+- Design .md przeniesione z Documents do Projects (wspólny root z Unreal project)
+- `.gitignore` + `.gitattributes` (Git LFS dla uasset/umap/images/audio/3D/fonts) utworzone
+- Git global config: `Antoni Bulsiewicz <antonibulsiewicz@gmail.com>` ustawione
+- **First commit `2bc9bec`**: 601 plików, 6905 insertions, root-commit `[M1] chore: initial scaffolding`
+- **Push `origin/main`** ✅ — 539 LFS objects (155 MB) uploaded. Repo live: https://github.com/dvmesh/gastrofps
 
-**Pomysły (w trakcie rozmowy)**: —
+**Pomysły (w trakcie rozmowy)**:
+- First Person template przyniósł sporo niepotrzebnych assetów (Variant_Horror, Variant_Shooter, pistol anims, mannequins). GastroFPS nie ma strzelania → do wywalenia w osobnym commit na początku M1 (czysta baza).
 
 **Otwarte TODO**:
-- [~] Instalacja Unreal Engine 5.7.4 (w trakcie, ~50GB)
-- [x] ~~Decyzja: updatować design doc na 5.7.4~~ zrobione
-- [~] VS 2022 — dobrać workloady: Game dev C++ + Desktop C++ + Unreal Engine installer (individual component) + Win11 SDK + MSVC v143 Latest + .NET 4.8.1
-- [x] ~~Git zainstalowany~~
-- [ ] `git lfs install` w PowerShell (potwierdzić czy odpalone)
-- [x] ~~GitHub username~~ `dvmesh`
-- [ ] Utworzenie repo `dvmesh/gastrofps` na GitHub (private na start, później public)
-- [ ] Test install: utworzyć dummy Third Person C++ project, skompilować, skasować
-- [ ] Utworzenie real projektu `GastroFPS` w Unreal (C++ enabled, pusty template)
-- [ ] `git init` + first commit scaffolding
-- [ ] Push na GitHub
+- [ ] **M1 start**: usunąć Variant_Horror + Variant_Shooter + pistol/weapon content z templatu (osobny commit `[M1] chore: strip shooter template content`)
+- [ ] Utworzyć branch `dev` (per design doc: main=stable, dev=integration, feat/xxx=features)
+- [ ] M1 scaffolding: pierwsza klasa C++ `ASStation` (base interactable station), `UOrderComponent`, `EOrderState` enum
+- [ ] Pierwsza mapa `L_PizzeriaWhitebox` — capsule floor + walls, 1 stolik (cube), 1 POS (cube), 1 pass window (cube)
+- [ ] Ingest przycisk `E` jako placeholder interaction (custom input action)
+- [ ] Pierwszy test: gracz (First Person character) chodzi po mapie, interakcja E z cube-stoliki
+- [ ] Rozważyć zmianę email na GitHub noreply (opcjonalnie, email jest public w commitach)
+- [ ] Na końcu sesji: commit + push
 
-**Blokery**:
-- Instalacja UE 5.7.4 w toku (16GB RAM host)
-- VS 2022 czeka na dobranie workloadów/componentów
+**Blokery**: —
 
 **Next step**:
-1. User: VS Installer → Modify → Game dev C++ + Desktop C++ + Unreal Engine installer component + Win11 SDK + MSVC v143 + .NET 4.8.1
-2. User: `git lfs install` w PowerShell (jeśli jeszcze nie)
-3. Czekamy aż UE 5.7.4 skończy się ściągać
-4. Test install (dummy Third Person C++ project → compile → skasować)
-5. Real projekt `GastroFPS` → git init → first commit → M1 scaffolding
+Setup zamknięty. **M1 start** — pierwszy commit M1 to cleanup templatu (usunięcie Variant_*, pistol, mannequin anims — zostawiamy tylko First Person base character i minimalną mapę). Potem tworzymy branch `dev`, pierwsze klasy C++ (`ASStation`, `UOrderComponent`) i whitebox mapę.
 
